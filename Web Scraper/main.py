@@ -3,16 +3,12 @@ import os
 import re
 import time
 
-
+from bs4 import BeautifulSoup
 from datetime import datetime
-from telethon.sync import TelegramClient
-from telethon.tl.functions.messages import GetHistoryRequest
-from telethon.tl.types import PeerChannel
-
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from bs4 import BeautifulSoup
+
 
 # Prompt the user to submit the input files
 submit_input_files = input("Do you want to submit the input files? (Y/N): ")
@@ -22,8 +18,8 @@ if submit_input_files.lower() == "y":
     desktop = os.path.expanduser("~/Desktop")
     input_file_path = os.path.join(desktop, "input.txt")
 else:
-    print("System closed ")
-    print(FileNotFoundError)
+    print("System closed " + FileNotFoundError)
+    
 
     # Read the input data from the file
     with open(input_file_path, 'r') as input_file:
@@ -45,10 +41,12 @@ else:
 submit_output_files = input("Do you want to submit the output files? (Y/N): ")
 
 if submit_output_files.lower() == "y":
-    input_file = os.path.join(os.path.expanduser("~"), "Desktop", "input.txt")
-    output_file = os.path.join(os.path.expanduser("~"), "Desktop", "output.txt")
+    input_file = os.path.join(os.path.expanduser("~"), "C:/Desktop/linkbypasser", "input.txt")
+    output_file = os.path.join(os.path.expanduser("~"), "C:/Desktop/linkbypasser", "output.txt")
 
-    with open(input_file, "r") as f_in, open(output_file, "w") as f_out:
+else: print(FileExistsError)
+
+with open(input_file, "r") as f_in, open(output_file, "w") as f_out:
         data = f_in.read()
         pattern = r"^(.+):\s*(https?://\S+)\s*$"
         for match in re.findall(pattern, data, flags=re.MULTILINE):
@@ -58,7 +56,7 @@ if submit_output_files.lower() == "y":
 # -------------------------------------
 
 # Read the output data
-with open(os.path.join(os.path.expanduser("~"), "Desktop", "output.txt"), "r") as f:
+with open(os.path.join(os.path.expanduser("~"), "C:/Desktop/linkbypasser", "output.txt"), "r") as f:
     output_data = f.read()
 
 # Convert the output data into a string
@@ -70,10 +68,9 @@ for line in output_data.strip().split('\n'):
     cleaned_data_str += f"{name}: {link}\n"
 
 # Write the cleaned data into a text file on the desktop
-with open(os.path.join(os.path.expanduser("~"), "Desktop", "cleaned_data.txt"), 'w') as f:
-    f.write(cleaned_data_str)
+with open(os.path.join(os.path.expanduser("~"), "C:/Desktop/linkbypasser", "cleaned_data.txt"), 'w') as f:
+    f.write.__new__(cleaned_data_str)
 
-# -------------------------------------
 
 # Path to your Brave browser profile directory
 profile_path = r'C:\Users\Jonathan Bolton\AppData\Local\BraveSoftware\Brave-Browser\User Data\Default'
