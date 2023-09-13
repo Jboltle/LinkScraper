@@ -16,7 +16,7 @@ submit_input_files = input("Do you want to submit the input files? (Y/N): ")
 if submit_input_files.lower() == "y":
     # Define the path to the input file
     desktop = os.path.expanduser("~/Desktop")
-    input_file_path = os.path.join(desktop, "input.txt")
+    input_file_path = os.path.join("/Desktop/linkbypasser", "input.txt")
 else:
     print("System closed " + FileNotFoundError)
     
