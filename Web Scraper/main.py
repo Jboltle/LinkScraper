@@ -41,8 +41,8 @@ else:
 submit_output_files = input("Do you want to submit the output files? (Y/N): ")
 
 if submit_output_files.lower() == "y":
-    input_file = os.path.join(os.path.expanduser("~"), "C:/Desktop/linkbypasser", "input.txt")
-    output_file = os.path.join(os.path.expanduser("~"), "C:/Desktop/linkbypasser", "output.txt")
+    input_file = os.path.join(os.path.expanduser("~"), "C:\Users\Jon\Desktop\linkbypasser\LinkScraper", "input.txt")
+    output_file = os.path.join(os.path.expanduser("~"), "C:\Users\Jon\Desktop\linkbypasser\LinkScraper", "output.txt")
 
 else: print(FileExistsError)
 
@@ -56,7 +56,7 @@ with open(input_file, "r") as f_in, open(output_file, "w") as f_out:
 # -------------------------------------
 
 # Read the output data
-with open(os.path.join(os.path.expanduser("~"), "C:/Desktop/linkbypasser", "output.txt"), "r") as f:
+with open(os.path.join(os.path.expanduser("~"), "C:\Users\Jon\Desktop\linkbypasser\LinkScraper", "output.txt"), "r") as f:
     output_data = f.read()
 
 # Convert the output data into a string
@@ -68,7 +68,7 @@ for line in output_data.strip().split('\n'):
     cleaned_data_str += f"{name}: {link}\n"
 
 # Write the cleaned data into a text file on the desktop
-with open(os.path.join(os.path.expanduser("~"), "C:/Desktop/linkbypasser", "cleaned_data.txt"), 'w') as f:
+with open(os.path.join(os.path.expanduser("~"), "C:\Users\Jon\Desktop\linkbypasser\LinkScraper", "cleaned_data.txt"), 'w') as f:
     f.write.__new__(cleaned_data_str)
 
 
