@@ -1,14 +1,55 @@
 import os
 import re
 import time
-import csv
 import logging
+import subprocess
+import requests
+import tkinter as tk
+from tkinter import filedialog, messagebox, Entry
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
+
+
 # Configure logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def main():
+    root = tk.Tk()  # Create the main application window
+    root.withdraw()  # Hide the root window
+    input_file_path, output_file_path, cleaned_data_file_path = get_input_paths(root)
+
+    # Read and process input data
+    entries = read_and_process_input(input_file_path)
+
+    # Initialize web scraping components
+    driver = initialize_web_scraping()
+
+    # Scrape and save links
+    scrape_and_save_links(driver, entries, output_file_path)
+
+    # Clean data and save
+    cleaned_data_str = clean_data(output_file_path)
+    save_cleaned_data(cleaned_data_str, cleaned_data_file_path)
+
+    root.destroy()  # Close the GUI window
+
+def get_input_paths(root):
+    input_file_path = filedialog.askopenfilename(title="Select Input File")
+    if not os.path.isfile(input_file_path):
+        messagebox.showerror("Error", "Input file not found.")
+        exit()
+
+    output_file_path = filedialog.asksaveasfilename(title="Save Output File")
+    cleaned_data_file_path = filedialog.asksaveasfilename(title="Save Cleaned Data File")
+
+    return input_file_path, output_file_path, cleaned_data_file_path
+
+# Configure lo
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -25,57 +66,94 @@ def main():
     scrape_and_save_links(driver, entries)
 
     # Clean data and save
-    cleaned_data_str = clean_data()
+    cleaned_data_str = clean_data(output_file_path)
     save_cleaned_data(cleaned_data_str, cleaned_data_file_path)
 
 def get_input_paths():
-    submit_input_files = input("Do you want to submit the input files? (Y/N): ").lower()
-    
-    if submit_input_files == "y":
-        desktop = os.path.expanduser("~/Desktop")
-        input_file_path = os.path.join(desktop, "input.txt")
-    else:
-        raise FileNotFoundError("Input file not specified by the user")
+    input_file_path = input("Enter the path to the input file: ").strip()
+    output_file_path = input("Enter the path to the output file: ").strip()
+    cleaned_data_file_path = input("Enter the path to save cleaned data: ").strip()
 
-    submit_output_files = input("Do you want to submit the output files? (Y/N): ").lower()
-    
-    if submit_output_files == "y":
-        input_file = os.path.join(os.path.expanduser("~"), "C:\Users\Jon\Desktop\linkbypasser\LinkScraper", "input.txt")
-        output_file = os.path.join(os.path.expanduser("~"), "C:\Users\Jon\Desktop\linkbypasser\LinkScraper", "output.txt")
-    else:
-        raise FileNotFoundError("Output file not specified by the user")
+    if not os.path.isfile(input_file_path):
+        raise FileNotFoundError(f"Input file not found: {input_file_path}")
 
-    cleaned_data_file_path = os.path.join(os.path.expanduser("~"), "C:\Users\Jon\Desktop\linkbypasser\LinkScraper", "cleaned_data.txt")
-
-    return input_file_path, output_file, cleaned_data_file_path
+    return input_file_path, output_file_path, cleaned_data_file_path
 
 def read_and_process_input(input_file_path):
     with open(input_file_path, 'r') as input_file:
         data = input_file.read()
 
-    entries = re.split('\n\n+', data.strip())
-    pattern = r'^(.+?):\s+(https?://\S+)'
-    return re.findall(pattern, data, flags=re.MULTILINE)
+    entries = re.findall(r'^(.+?):\s+(https?://\S+)', data, flags=re.MULTILINE)
+    return entries
 
 def initialize_web_scraping():
-    profile_path = r'C:\Users\Jonathan Bolton\AppData\Local\BraveSoftware\Brave-Browser\User Data\Default'
-    brave_path = r'C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe'
-    
+    profile_path = input("Enter the path to the browser profile directory: ").strip()
+    brave_path = input("Enter the path to the browser executable file: ").strip()
+    driver_path = input("Enter the path to the Chrome driver executable: ").strip()
+
+
+
     chrome_options = Options()
     chrome_options.binary_location = brave_path
     chrome_options.add_argument('--user-data-dir=' + profile_path)
 
-    driver_path = r'C:\Users\Jonathan Bolton\Desktop\chromedriver.exe'
     service = Service(driver_path)
     return webdriver.Chrome(service=service, options=chrome_options)
+def check_and_update_chromedriver():
+    latest_version = get_latest_chromedriver_version()
+    if latest_version:
+        installed_version = get_installed_chromedriver_version()
+        if latest_version != installed_version:
+            print(f"Updating ChromeDriver from version {installed_version} to {latest_version}...")
+            update_chromedriver(latest_version)
+        else:
+            print(f"ChromeDriver is up to date (version {installed_version}).")
+
+def get_latest_chromedriver_version():
+    try:
+        response = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+        if response.status_code == 200:
+            return response.text.strip()
+        else:
+            print(f"Failed to fetch the latest ChromeDriver version. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"Error while fetching ChromeDriver version: {str(e)}")
+    return None
+
+def get_installed_chromedriver_version():
+    # Replace with the actual path to your installed ChromeDriver executable
+    chromedriver_path = input("Enter the path to the Chrome driver executable: ").strip()
+    try:
+        process = subprocess.Popen([chromedriver_path, '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, _ = process.communicate()
+        installed_version = re.search(r'ChromeDriver (\d+\.\d+\.\d+)', output.decode('utf-8'))
+        if installed_version:
+            return installed_version.group(1)
+    except Exception as e:
+        print(f"Error while getting installed ChromeDriver version: {str(e)}")
+    return None
+
+def update_chromedriver(version):
+    # Replace with the actual path where you want to save the new ChromeDriver executable
+    chromedriver_path = input("Enter the path to the Chrome driver executable: ").strip()
+    chromedriver_url = f"https://chromedriver.storage.googleapis.com/{version}/chromedriver_win32.zip"  # Replace with your platform
+    try:
+        response = requests.get(chromedriver_url)
+        if response.status_code == 200:
+            with open(chromedriver_path, 'wb') as file:
+                file.write(response.content)
+                print(f"ChromeDriver {version} downloaded and saved to {chromedriver_path}")
+        else:
+            print(f"Failed to download ChromeDriver. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"Error while downloading ChromeDriver: {str(e)}")
 
 def scrape_and_save_links(driver, entries):
-    # Create or open the mega_files.txt file on the desktop
-    desktop_path = os.path.join(os.path.expanduser("~"), 'Desktop')
-    filename = os.path.join(desktop_path, 'mega_files.txt')
+    output_file_path = input("Enter the path to the output file: ").strip()
+    desktop_path = os.path.expanduser("~/Desktop")
 
     try:
-        with open(filename, 'a') as mega_file:
+        with open(output_file_path, 'a') as mega_file:
             for name, url in entries:
                 try:
                     # Scrape the mega.nz links from the webpage
@@ -86,7 +164,7 @@ def scrape_and_save_links(driver, entries):
                     for link in links:
                         logger.info(link)
 
-                    # Write the links to the mega_files.txt file
+                    # Write the links to the output file
                     for link in links:
                         mega_file.write(f"{name}: {link}\n")
 
@@ -95,9 +173,9 @@ def scrape_and_save_links(driver, entries):
                 except Exception as e:
                     logger.error(f"An error occurred while scraping {url}: {e}")
 
-        logger.info(f"Links have been written to {filename}")
+        logger.info(f"Links have been written to {output_file_path}")
     except Exception as e:
-        logger.error(f"An error occurred while opening or writing to {filename}: {e}")
+        logger.error(f"An error occurred while opening or writing to {output_file_path}: {e}")
 
 def scrape_links(driver, url):
     # Navigate to the webpage
@@ -116,11 +194,7 @@ def scrape_links(driver, url):
     # Extract the href attributes from the links and return them as a list
     return [link.get('href') for link in links]
 
-def clean_data():
-    # Read the output data
-    desktop_path = os.path.join(os.path.expanduser("~"), 'Desktop')
-    output_file_path = os.path.join(desktop_path, 'output.txt')
-
+def clean_data(output_file_path):
     with open(output_file_path, "r") as f:
         output_data = f.read()
 
